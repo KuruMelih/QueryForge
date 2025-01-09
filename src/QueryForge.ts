@@ -32,6 +32,21 @@ export class QueryForge extends QueryBuilder {
   }
 
   protected buildQuery(): string {
+    switch (this.state.type) {
+      case 'SELECT':
+        return this.buildSelectQuery();
+      case 'INSERT':
+        return this.buildInsertQuery();
+      case 'UPDATE':
+        return this.buildUpdateQuery();
+      case 'DELETE':
+        return this.buildDeleteQuery();
+      default:
+        throw new Error(`Unsupported query type: ${this.state.type}`);
+    }
+  }
+
+  private buildSelectQuery(): string {
     const query: string[] = [];
 
     // SELECT
@@ -90,22 +105,103 @@ export class QueryForge extends QueryBuilder {
     return query.join(' ');
   }
 
+  private buildInsertQuery(): string {
+    if (this.state.values.length === 0) {
+      throw new Error('No values provided for insert');
+    }
+
+    const recordCount = this.state.values.length / this.state.columns.length;
+    if (!Number.isInteger(recordCount)) {
+      throw new Error('Invalid number of values for columns');
+    }
+
+    const singleRecordPlaceholders = `(${Array(this.state.columns.length).fill('?').join(', ')})`;
+    const allPlaceholders = Array(recordCount).fill(singleRecordPlaceholders).join(', ');
+    
+    return `INSERT INTO ${this.state.table} (${this.state.columns.join(', ')}) VALUES ${allPlaceholders}`;
+  }
+
+  private buildUpdateQuery(): string {
+    if (!this.state.updateValues) {
+      throw new Error('No update values provided');
+    }
+
+    const setClauses = Object.keys(this.state.updateValues)
+      .map(column => `${column} = ?`)
+      .join(', ');
+
+    const query = [`UPDATE ${this.state.table} SET ${setClauses}`];
+
+    if (this.state.where.length) {
+      const conditions = this.state.where.map((condition, index) => {
+        const logic = index === 0 ? 'WHERE' : condition.logic;
+        return `${logic} ${condition.column} ${condition.operator} ?`;
+      });
+      query.push(conditions.join(' '));
+    }
+
+    return query.join(' ');
+  }
+
+  private buildDeleteQuery(): string {
+    const query = [`DELETE FROM ${this.state.table}`];
+
+    if (this.state.where.length) {
+      const conditions = this.state.where.map((condition, index) => {
+        const logic = index === 0 ? 'WHERE' : condition.logic;
+        return `${logic} ${condition.column} ${condition.operator} ?`;
+      });
+      query.push(conditions.join(' '));
+    }
+
+    return query.join(' ');
+  }
+
   protected buildParameters(): any[] {
     const parameters: any[] = [];
 
-    // WHERE parameters
-    this.state.where.forEach(condition => {
-      if (condition.value !== undefined) {
-        parameters.push(condition.value);
-      }
-    });
+    switch (this.state.type) {
+      case 'SELECT':
+        // WHERE parameters
+        this.state.where.forEach(condition => {
+          if (condition.value !== undefined) {
+            parameters.push(condition.value);
+          }
+        });
+        // HAVING parameters
+        this.state.having.forEach(condition => {
+          if (condition.value !== undefined) {
+            parameters.push(condition.value);
+          }
+        });
+        break;
 
-    // HAVING parameters
-    this.state.having.forEach(condition => {
-      if (condition.value !== undefined) {
-        parameters.push(condition.value);
-      }
-    });
+      case 'INSERT':
+        parameters.push(...this.state.values);
+        break;
+
+      case 'UPDATE':
+        // Update values
+        if (this.state.updateValues) {
+          parameters.push(...Object.values(this.state.updateValues));
+        }
+        // WHERE parameters
+        this.state.where.forEach(condition => {
+          if (condition.value !== undefined) {
+            parameters.push(condition.value);
+          }
+        });
+        break;
+
+      case 'DELETE':
+        // WHERE parameters
+        this.state.where.forEach(condition => {
+          if (condition.value !== undefined) {
+            parameters.push(condition.value);
+          }
+        });
+        break;
+    }
 
     return parameters;
   }

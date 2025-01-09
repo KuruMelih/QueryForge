@@ -9,8 +9,12 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "rootDir": "./src",
-    "types": ["node", "jest"]
+    "types": ["node", "jest"],
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "sourceMap": true,
+    "removeComments": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "tests", "dist"]
+  "exclude": ["node_modules", "tests", "dist", "examples"]
 } 

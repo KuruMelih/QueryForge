@@ -1,0 +1,51 @@
+# Source
+src/
+
+# Tests
+tests/
+coverage/
+jest.config.js
+*.test.ts
+__tests__/
+
+# Development configs
+.eslintrc.json
+.prettierrc
+tsconfig.json
+.editorconfig
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# Examples
+examples/
+
+# Documentation source
+docs/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env*
+
+# Build artifacts
+*.tsbuildinfo
+
+# Git
+.git/
+.gitignore
+
+# CI
+.github/
+.travis.yml
+.gitlab-ci.yml
+
+# Misc
+.DS_Store
+Thumbs.db 

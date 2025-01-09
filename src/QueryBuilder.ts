@@ -2,8 +2,10 @@ import { QueryOptions } from './interfaces';
 import { WhereCondition, JoinCondition, OrderDirection } from './types';
 
 interface QueryState {
+  type: 'SELECT' | 'INSERT' | 'UPDATE' | 'DELETE';
   table: string;
   columns: string[];
+  values: any[];
   where: WhereCondition[];
   joins: JoinCondition[];
   groupBy: string[];
@@ -11,6 +13,7 @@ interface QueryState {
   orderBy: { column: string; direction: OrderDirection }[];
   limit?: number;
   offset?: number;
+  updateValues?: Record<string, any>;
 }
 
 export class QueryBuilder {
@@ -20,8 +23,25 @@ export class QueryBuilder {
   constructor(options: QueryOptions = {}) {
     this.options = options;
     this.state = {
+      type: 'SELECT',
       table: '',
       columns: ['*'],
+      values: [],
+      where: [],
+      joins: [],
+      groupBy: [],
+      having: [],
+      orderBy: [],
+    };
+  }
+
+  protected reset(keepTable: boolean = false): void {
+    const oldTable = keepTable ? this.state.table : '';
+    this.state = {
+      type: 'SELECT',
+      table: oldTable,
+      columns: ['*'],
+      values: [],
       where: [],
       joins: [],
       groupBy: [],
@@ -31,11 +51,14 @@ export class QueryBuilder {
   }
 
   table(tableName: string): this {
+    this.reset(false);
     this.state.table = tableName;
     return this;
   }
 
   select(...columns: string[]): this {
+    this.reset(true);
+    this.state.type = 'SELECT';
     this.state.columns = columns.length ? columns : ['*'];
     return this;
   }
@@ -87,7 +110,7 @@ export class QueryBuilder {
   }
 
   orderBy(column: string, direction: OrderDirection = 'ASC'): this {
-    this.state.orderBy.push({ column, direction });
+    this.state.orderBy = [{ column, direction }];
     return this;
   }
 
@@ -113,6 +136,45 @@ export class QueryBuilder {
 
   offset(offset: number): this {
     this.state.offset = offset;
+    return this;
+  }
+
+  insert(data: Record<string, any>): this {
+    this.reset(true);
+    this.state.type = 'INSERT';
+    this.state.columns = Object.keys(data);
+    this.state.values = Object.values(data);
+    return this;
+  }
+
+  insertMany(records: Record<string, any>[]): this {
+    if (!records.length) {
+      throw new Error('No records provided for bulk insert');
+    }
+
+    this.reset(true);
+    this.state.type = 'INSERT';
+    this.state.columns = Object.keys(records[0]);
+    this.state.values = records.map(record => {
+      const values = this.state.columns.map(column => record[column]);
+      if (values.length !== this.state.columns.length) {
+        throw new Error('All records must have the same columns');
+      }
+      return values;
+    }).flat();
+    return this;
+  }
+
+  update(data: Record<string, any>): this {
+    this.reset(true);
+    this.state.type = 'UPDATE';
+    this.state.updateValues = data;
+    return this;
+  }
+
+  delete(): this {
+    this.reset(true);
+    this.state.type = 'DELETE';
     return this;
   }
 

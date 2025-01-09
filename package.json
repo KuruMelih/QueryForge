@@ -1,7 +1,7 @@
 {
   "name": "queryforge",
-  "version": "0.1.0",
-  "description": "A powerful, type-safe SQL query builder with support for MySQL, PostgreSQL, and SQLite. Features fluent API, transaction management, and connection pooling.",
+  "version": "0.1.1",
+  "description": "A powerful, type-safe SQL query builder for Node.js with support for MySQL, PostgreSQL, and SQLite. Features fluent API, transaction management, and connection pooling.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -37,9 +37,7 @@
     "transaction-management",
     "connection-pooling",
     "prepared-statements",
-    "parameterized-queries",
-    "database-migration",
-    "database-toolkit"
+    "parameterized-queries"
   ],
   "author": {
     "name": "Melih Kuru",
@@ -78,8 +76,9 @@
     "node": ">=14.0.0"
   },
   "files": [
-    "dist",
+    "dist/**/*",
     "LICENSE",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md"
   ]
 } 
