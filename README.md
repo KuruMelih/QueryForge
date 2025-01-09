@@ -1,51 +1,87 @@
 # QueryForge
 
-A powerful and flexible query builder for TypeScript and JavaScript applications.
+[![npm version](https://badge.fury.io/js/queryforge.svg)](https://www.npmjs.com/package/queryforge)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 
-## Features
+A powerful, type-safe SQL query builder for Node.js applications. QueryForge provides a fluent API for building and executing SQL queries with support for MySQL, PostgreSQL, and SQLite.
 
-- Type-safe query building
-- Support for multiple databases (MySQL, PostgreSQL, SQLite)
-- Chain-able API
-- SQL injection protection
-- TypeScript and JavaScript support
-- Comprehensive documentation
-- Extensive test coverage
+## 🚀 Features
 
-## Installation
+- ✨ Type-safe query building with TypeScript
+- 🔌 Support for multiple databases:
+  - MySQL
+  - PostgreSQL
+  - SQLite
+- 🔗 Fluent, chainable API
+- 🛡️ SQL injection protection with parameterized queries
+- 🔄 Transaction management
+- 🎯 Connection pooling
+- 📝 Comprehensive TypeScript definitions
+- 📚 High test coverage
+
+## 📦 Installation
 
 ```bash
 npm install queryforge
 ```
 
-## Quick Start
+## 🎯 Quick Start
 
 ```typescript
 import { QueryForge } from 'queryforge';
 
-// Create a new query
-const query = new QueryForge()
-  .select('users')
-  .where('age', '>', 18)
-  .orderBy('name', 'DESC')
-  .limit(10);
+// Configure database connection
+const config = {
+  type: 'mysql',
+  host: 'localhost',
+  port: 3306,
+  username: 'root',
+  password: 'password',
+  database: 'mydb'
+};
 
-// Execute the query
-const results = await query.execute();
+// Create QueryForge instance
+const qf = new QueryForge(config);
+
+// Simple query example
+const users = await qf
+  .table('users')
+  .select('id', 'name', 'email')
+  .where('age', '>', 18)
+  .orderBy('name', 'ASC')
+  .limit(10)
+  .execute();
+
+// JOIN example
+const orders = await qf
+  .table('orders')
+  .select('orders.id', 'orders.total', 'users.name')
+  .join('users', 'orders.user_id', '=', 'users.id')
+  .where('orders.total', '>', 100)
+  .execute();
+
+// Transaction example
+await qf.beginTransaction();
+try {
+  // ... your queries here
+  await qf.commit();
+} catch (error) {
+  await qf.rollback();
+  throw error;
+}
 ```
 
-## Documentation
+## 📚 Contributing
 
-For detailed documentation, please visit our [documentation page](docs/README.md).
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-## Examples
+## 📝 License
 
-Check out our [examples directory](examples/) for more usage examples.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## Contributing
+## 🔗 Links
 
-Contributions are welcome! Please read our [contributing guidelines](CONTRIBUTING.md) first.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
+- [NPM Package](https://www.npmjs.com/package/queryforge)
+- [GitHub Repository](https://github.com/kurumelih/queryforge)
+- [Changelog](CHANGELOG.md) 

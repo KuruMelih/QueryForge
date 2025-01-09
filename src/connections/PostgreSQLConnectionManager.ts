@@ -1,10 +1,9 @@
-import { Pool, PoolClient } from 'pg';
-import { DatabaseConfig, QueryResult } from '../interfaces';
+import { Client } from 'pg';
 import { ConnectionManager } from './ConnectionManager';
+import { DatabaseConfig, QueryResult } from '../interfaces';
 
 export class PostgreSQLConnectionManager implements ConnectionManager {
-  private pool: Pool | null = null;
-  private client: PoolClient | null = null;
+  private client: Client | null = null;
   private config: DatabaseConfig;
 
   constructor(config: DatabaseConfig) {
@@ -12,116 +11,87 @@ export class PostgreSQLConnectionManager implements ConnectionManager {
   }
 
   async connect(): Promise<void> {
-    if (this.pool) {
-      return;
-    }
-
     try {
-      this.pool = new Pool({
+      this.client = new Client({
         host: this.config.host,
         port: this.config.port,
         user: this.config.username,
         password: this.config.password,
-        database: this.config.database,
-        max: 20,
-        idleTimeoutMillis: 30000,
-        connectionTimeoutMillis: 2000,
+        database: this.config.database
       });
-
-      // Test bağlantısı
-      await this.pool.connect();
+      await this.client.connect();
     } catch (error) {
-      throw new Error(`PostgreSQL connection failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`PostgreSQL connection failed: ${errorMessage}`);
     }
+  }
+
+  isConnected(): boolean {
+    return this.client !== null;
   }
 
   async disconnect(): Promise<void> {
     if (this.client) {
-      await this.client.release();
+      await this.client.end();
       this.client = null;
-    }
-    if (this.pool) {
-      await this.pool.end();
-      this.pool = null;
     }
   }
 
   async query<T = any>(sql: string, parameters: any[] = []): Promise<QueryResult<T>> {
-    if (!this.pool) {
-      throw new Error('PostgreSQL connection not established');
+    if (!this.client) {
+      throw new Error('No PostgreSQL connection established');
     }
 
     try {
-      const client = await this.pool.connect();
-      try {
-        const result = await client.query(sql, parameters);
-        client.release();
-
-        return {
-          rows: result.rows as T[],
-          count: result.rowCount || 0,
-          query: sql,
-          parameters
-        };
-      } catch (error) {
-        client.release();
-        throw error;
-      }
+      const result = await this.client.query(sql, parameters);
+      return {
+        rows: result.rows as T[],
+        count: result.rowCount || 0,
+        query: sql,
+        parameters
+      };
     } catch (error) {
-      throw new Error(`PostgreSQL query failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`PostgreSQL query failed: ${errorMessage}`);
     }
   }
 
   async beginTransaction(): Promise<void> {
-    if (!this.pool) {
-      throw new Error('PostgreSQL connection not established');
-    }
-
-    if (this.client) {
-      throw new Error('Transaction already in progress');
+    if (!this.client) {
+      throw new Error('No PostgreSQL connection established');
     }
 
     try {
-      this.client = await this.pool.connect();
       await this.client.query('BEGIN');
     } catch (error) {
-      if (this.client) {
-        this.client.release();
-        this.client = null;
-      }
-      throw new Error(`Begin transaction failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Begin transaction failed: ${errorMessage}`);
     }
   }
 
   async commit(): Promise<void> {
     if (!this.client) {
-      throw new Error('No active transaction');
+      throw new Error('No PostgreSQL connection established');
     }
 
     try {
       await this.client.query('COMMIT');
-      this.client.release();
-      this.client = null;
     } catch (error) {
-      throw new Error(`Commit failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Commit failed: ${errorMessage}`);
     }
   }
 
   async rollback(): Promise<void> {
     if (!this.client) {
-      throw new Error('No active transaction');
+      throw new Error('No PostgreSQL connection established');
     }
 
     try {
       await this.client.query('ROLLBACK');
-      this.client.release();
-      this.client = null;
     } catch (error) {
-      throw new Error(`Rollback failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Rollback failed: ${errorMessage}`);
     }
-  }
-
-  isConnected(): boolean {
-    return this.pool !== null;
   }
 } 

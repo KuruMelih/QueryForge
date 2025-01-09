@@ -1,10 +1,9 @@
-import { createPool, Pool, PoolConnection } from 'mysql2/promise';
-import { DatabaseConfig, QueryResult } from '../interfaces';
+import { Connection, createConnection } from 'mysql2/promise';
 import { ConnectionManager } from './ConnectionManager';
+import { DatabaseConfig, QueryResult } from '../interfaces';
 
 export class MySQLConnectionManager implements ConnectionManager {
-  private pool: Pool | null = null;
-  private connection: PoolConnection | null = null;
+  private connection: Connection | null = null;
   private config: DatabaseConfig;
 
   constructor(config: DatabaseConfig) {
@@ -12,112 +11,86 @@ export class MySQLConnectionManager implements ConnectionManager {
   }
 
   async connect(): Promise<void> {
-    if (this.pool) {
-      return;
-    }
-
     try {
-      this.pool = createPool({
+      this.connection = await createConnection({
         host: this.config.host,
         port: this.config.port,
         user: this.config.username,
         password: this.config.password,
-        database: this.config.database,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0
+        database: this.config.database
       });
-
-      // Test bağlantısı
-      await this.pool.getConnection();
     } catch (error) {
-      throw new Error(`MySQL connection failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`MySQL connection failed: ${errorMessage}`);
     }
+  }
+
+  isConnected(): boolean {
+    return this.connection !== null;
   }
 
   async disconnect(): Promise<void> {
     if (this.connection) {
-      await this.connection.release();
+      await this.connection.end();
       this.connection = null;
-    }
-    if (this.pool) {
-      await this.pool.end();
-      this.pool = null;
     }
   }
 
   async query<T = any>(sql: string, parameters: any[] = []): Promise<QueryResult<T>> {
-    if (!this.pool) {
-      throw new Error('MySQL connection not established');
+    if (!this.connection) {
+      throw new Error('No MySQL connection established');
     }
 
     try {
-      const connection = await this.pool.getConnection();
-      try {
-        const [rows, fields] = await connection.query(sql, parameters);
-        connection.release();
-
-        return {
-          rows: rows as T[],
-          count: Array.isArray(rows) ? rows.length : 0,
-          query: sql,
-          parameters
-        };
-      } catch (error) {
-        connection.release();
-        throw error;
-      }
+      const [rows] = await this.connection.execute(sql, parameters);
+      return {
+        rows: rows as T[],
+        count: Array.isArray(rows) ? rows.length : 0,
+        query: sql,
+        parameters
+      };
     } catch (error) {
-      throw new Error(`MySQL query failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`MySQL query failed: ${errorMessage}`);
     }
   }
 
   async beginTransaction(): Promise<void> {
-    if (!this.pool) {
-      throw new Error('MySQL connection not established');
-    }
-
-    if (this.connection) {
-      throw new Error('Transaction already in progress');
+    if (!this.connection) {
+      throw new Error('No MySQL connection established');
     }
 
     try {
-      this.connection = await this.pool.getConnection();
       await this.connection.beginTransaction();
     } catch (error) {
-      throw new Error(`Begin transaction failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Begin transaction failed: ${errorMessage}`);
     }
   }
 
   async commit(): Promise<void> {
     if (!this.connection) {
-      throw new Error('No active transaction');
+      throw new Error('No MySQL connection established');
     }
 
     try {
       await this.connection.commit();
-      await this.connection.release();
-      this.connection = null;
     } catch (error) {
-      throw new Error(`Commit failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Commit failed: ${errorMessage}`);
     }
   }
 
   async rollback(): Promise<void> {
     if (!this.connection) {
-      throw new Error('No active transaction');
+      throw new Error('No MySQL connection established');
     }
 
     try {
       await this.connection.rollback();
-      await this.connection.release();
-      this.connection = null;
     } catch (error) {
-      throw new Error(`Rollback failed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Rollback failed: ${errorMessage}`);
     }
-  }
-
-  isConnected(): boolean {
-    return this.pool !== null;
   }
 } 

@@ -1,7 +1,7 @@
 {
   "name": "queryforge",
   "version": "0.1.0",
-  "description": "A powerful and flexible query builder for TypeScript and JavaScript",
+  "description": "A powerful, type-safe SQL query builder with support for MySQL, PostgreSQL, and SQLite. Features fluent API, transaction management, and connection pooling.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
@@ -16,30 +16,44 @@
     "clean": "rimraf dist",
     "docs": "typedoc --out docs src",
     "format": "prettier --write \"src/**/*.ts\"",
-    "example": "ts-node examples"
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "keywords": [
-    "query",
-    "builder",
     "sql",
+    "query-builder",
     "database",
     "orm",
     "typescript",
-    "javascript",
     "mysql",
     "postgresql",
-    "sqlite"
+    "sqlite",
+    "nodejs",
+    "database-management",
+    "sql-query-builder",
+    "type-safe",
+    "fluent-api",
+    "transaction-management",
+    "connection-pooling",
+    "prepared-statements",
+    "parameterized-queries",
+    "database-migration",
+    "database-toolkit"
   ],
-  "author": "",
+  "author": {
+    "name": "Melih Kuru",
+    "url": "https://github.com/kurumelih"
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/queryforge.git"
+    "url": "git+https://github.com/kurumelih/queryforge.git"
   },
   "bugs": {
-    "url": "https://github.com/yourusername/queryforge/issues"
+    "url": "https://github.com/kurumelih/queryforge/issues"
   },
-  "homepage": "https://github.com/yourusername/queryforge#readme",
+  "homepage": "https://github.com/kurumelih/queryforge#readme",
   "dependencies": {
     "mysql2": "^3.6.5",
     "pg": "^8.11.3",
@@ -62,5 +76,10 @@
   },
   "engines": {
     "node": ">=14.0.0"
-  }
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ]
 } 

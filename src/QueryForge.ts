@@ -110,7 +110,7 @@ export class QueryForge extends QueryBuilder {
     return parameters;
   }
 
-  async execute<T = any>(): Promise<QueryResult<T>> {
+  async execute<T = any>(): Promise<T[]> {
     if (!this.connectionManager.isConnected()) {
       await this.connect();
     }
@@ -124,7 +124,8 @@ export class QueryForge extends QueryBuilder {
         console.log('Parameters:', parameters);
       }
 
-      return await this.connectionManager.query<T>(query, parameters);
+      const result = await this.connectionManager.query<T>(query, parameters);
+      return result.rows;
     } catch (error: unknown) {
       if (error instanceof Error) {
         throw new Error(`Query execution failed: ${error.message}`);

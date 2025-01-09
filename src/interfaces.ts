@@ -1,4 +1,4 @@
-import { DatabaseType, WhereCondition, JoinCondition, OrderDirection } from './types';
+import { DatabaseType } from './types';
 
 export interface DatabaseConfig {
   type: DatabaseType;
@@ -10,20 +10,7 @@ export interface DatabaseConfig {
 }
 
 export interface QueryOptions {
-  timeout?: number;
   logging?: boolean;
-}
-
-export interface QueryState {
-  table: string;
-  columns: string[];
-  where: WhereCondition[];
-  joins: JoinCondition[];
-  groupBy: string[];
-  having: WhereCondition[];
-  orderBy: { column: string; direction: OrderDirection }[];
-  limit?: number;
-  offset?: number;
 }
 
 export interface QueryResult<T = any> {
@@ -31,4 +18,14 @@ export interface QueryResult<T = any> {
   count: number;
   query: string;
   parameters: any[];
+}
+
+export interface ConnectionManager {
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
+  isConnected(): boolean;
+  query<T = any>(sql: string, parameters?: any[]): Promise<QueryResult<T>>;
+  beginTransaction(): Promise<void>;
+  commit(): Promise<void>;
+  rollback(): Promise<void>;
 } 

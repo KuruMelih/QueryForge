@@ -1,11 +1,17 @@
-import { 
-  QueryState, 
-  QueryOptions, 
-  QueryResult,
-  WhereCondition,
-  JoinCondition,
-  OrderDirection
-} from './interfaces';
+import { QueryOptions } from './interfaces';
+import { WhereCondition, JoinCondition, OrderDirection } from './types';
+
+interface QueryState {
+  table: string;
+  columns: string[];
+  where: WhereCondition[];
+  joins: JoinCondition[];
+  groupBy: string[];
+  having: WhereCondition[];
+  orderBy: { column: string; direction: OrderDirection }[];
+  limit?: number;
+  offset?: number;
+}
 
 export class QueryBuilder {
   protected state: QueryState;
@@ -124,7 +130,7 @@ export class QueryBuilder {
     throw new Error('buildParameters method must be implemented in derived class');
   }
 
-  async execute<T = any>(): Promise<QueryResult<T>> {
+  async execute<T = any>(): Promise<T[]> {
     // Bu metod alt sınıflarda implement edilecek
     throw new Error('execute method must be implemented in derived class');
   }
