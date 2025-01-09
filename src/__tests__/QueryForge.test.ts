@@ -11,7 +11,7 @@ describe('QueryForge', () => {
       port: 3306,
       username: 'test',
       password: 'test',
-      database: 'test_db'
+      database: 'test_db',
     };
     queryForge = new QueryForge(config);
   });
@@ -31,12 +31,12 @@ describe('QueryForge', () => {
       column: 'age',
       operator: '>',
       value: 18,
-      logic: 'AND'
+      logic: 'AND',
     });
     expect(query.orderBy[0]).toEqual({
       column: 'name',
-      direction: 'ASC'
+      direction: 'ASC',
     });
     expect(query.limit).toBe(10);
   });
-}); 
+});

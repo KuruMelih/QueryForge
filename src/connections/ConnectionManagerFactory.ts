@@ -18,4 +18,4 @@ export class ConnectionManagerFactory {
         throw new Error(`Unsupported database type: ${config.type}`);
     }
   }
-} 
+}

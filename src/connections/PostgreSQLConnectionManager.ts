@@ -17,7 +17,7 @@ export class PostgreSQLConnectionManager implements ConnectionManager {
         port: this.config.port,
         user: this.config.username,
         password: this.config.password,
-        database: this.config.database
+        database: this.config.database,
       });
       await this.client.connect();
     } catch (error) {
@@ -48,7 +48,7 @@ export class PostgreSQLConnectionManager implements ConnectionManager {
         rows: result.rows as T[],
         count: result.rowCount || 0,
         query: sql,
-        parameters
+        parameters,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -94,4 +94,4 @@ export class PostgreSQLConnectionManager implements ConnectionManager {
       throw new Error(`Rollback failed: ${errorMessage}`);
     }
   }
-} 
+}

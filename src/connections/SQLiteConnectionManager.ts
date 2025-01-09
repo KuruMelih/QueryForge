@@ -17,7 +17,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
     }
 
     return new Promise((resolve, reject) => {
-      this.db = new Database(this.config.database, (err) => {
+      this.db = new Database(this.config.database, err => {
         if (err) {
           reject(new Error(`SQLite connection failed: ${err.message}`));
         } else {
@@ -33,7 +33,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
     }
 
     return new Promise((resolve, reject) => {
-      this.db!.close((err) => {
+      this.db!.close(err => {
         if (err) {
           reject(new Error(`SQLite disconnect failed: ${err.message}`));
         } else {
@@ -61,12 +61,12 @@ export class SQLiteConnectionManager implements ConnectionManager {
               rows: rows as T[],
               count: rows.length,
               query: sql,
-              parameters
+              parameters,
             });
           }
         });
       } else {
-        this.db!.run(sql, parameters, function(err) {
+        this.db!.run(sql, parameters, function (err) {
           if (err) {
             reject(new Error(`SQLite query failed: ${err.message}`));
           } else {
@@ -74,7 +74,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
               rows: [],
               count: this.changes,
               query: sql,
-              parameters
+              parameters,
             });
           }
         });
@@ -92,7 +92,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
     }
 
     return new Promise((resolve, reject) => {
-      this.db!.run('BEGIN TRANSACTION', (err) => {
+      this.db!.run('BEGIN TRANSACTION', err => {
         if (err) {
           reject(new Error(`Begin transaction failed: ${err.message}`));
         } else {
@@ -113,7 +113,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
     }
 
     return new Promise((resolve, reject) => {
-      this.db!.run('COMMIT', (err) => {
+      this.db!.run('COMMIT', err => {
         if (err) {
           reject(new Error(`Commit failed: ${err.message}`));
         } else {
@@ -134,7 +134,7 @@ export class SQLiteConnectionManager implements ConnectionManager {
     }
 
     return new Promise((resolve, reject) => {
-      this.db!.run('ROLLBACK', (err) => {
+      this.db!.run('ROLLBACK', err => {
         if (err) {
           reject(new Error(`Rollback failed: ${err.message}`));
         } else {
@@ -148,4 +148,4 @@ export class SQLiteConnectionManager implements ConnectionManager {
   isConnected(): boolean {
     return this.db !== null;
   }
-} 
+}

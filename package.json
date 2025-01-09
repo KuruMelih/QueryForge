@@ -1,6 +1,6 @@
 {
   "name": "queryforge",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A powerful, type-safe SQL query builder for Node.js with support for MySQL, PostgreSQL, and SQLite. Features fluent API, transaction management, and connection pooling.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -81,4 +81,4 @@
     "README.md",
     "CHANGELOG.md"
   ]
-} 
+}

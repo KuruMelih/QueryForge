@@ -117,7 +117,7 @@ export class QueryForge extends QueryBuilder {
 
     const singleRecordPlaceholders = `(${Array(this.state.columns.length).fill('?').join(', ')})`;
     const allPlaceholders = Array(recordCount).fill(singleRecordPlaceholders).join(', ');
-    
+
     return `INSERT INTO ${this.state.table} (${this.state.columns.join(', ')}) VALUES ${allPlaceholders}`;
   }
 
@@ -229,4 +229,4 @@ export class QueryForge extends QueryBuilder {
       throw new Error('Query execution failed: Unknown error');
     }
   }
-} 
+}

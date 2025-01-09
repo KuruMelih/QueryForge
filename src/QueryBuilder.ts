@@ -68,7 +68,7 @@ export class QueryBuilder {
       column,
       operator: operator as any,
       value,
-      logic: 'AND'
+      logic: 'AND',
     });
     return this;
   }
@@ -78,7 +78,7 @@ export class QueryBuilder {
       column,
       operator: operator as any,
       value,
-      logic: 'OR'
+      logic: 'OR',
     });
     return this;
   }
@@ -90,8 +90,8 @@ export class QueryBuilder {
       on: {
         leftColumn,
         operator: operator as any,
-        rightColumn
-      }
+        rightColumn,
+      },
     });
     return this;
   }
@@ -103,8 +103,8 @@ export class QueryBuilder {
       on: {
         leftColumn,
         operator: operator as any,
-        rightColumn
-      }
+        rightColumn,
+      },
     });
     return this;
   }
@@ -124,7 +124,7 @@ export class QueryBuilder {
       column,
       operator: operator as any,
       value,
-      logic: 'AND'
+      logic: 'AND',
     });
     return this;
   }
@@ -155,13 +155,15 @@ export class QueryBuilder {
     this.reset(true);
     this.state.type = 'INSERT';
     this.state.columns = Object.keys(records[0]);
-    this.state.values = records.map(record => {
-      const values = this.state.columns.map(column => record[column]);
-      if (values.length !== this.state.columns.length) {
-        throw new Error('All records must have the same columns');
-      }
-      return values;
-    }).flat();
+    this.state.values = records
+      .map(record => {
+        const values = this.state.columns.map(column => record[column]);
+        if (values.length !== this.state.columns.length) {
+          throw new Error('All records must have the same columns');
+        }
+        return values;
+      })
+      .flat();
     return this;
   }
 
@@ -196,4 +198,4 @@ export class QueryBuilder {
     // Bu metod alt sınıflarda implement edilecek
     throw new Error('execute method must be implemented in derived class');
   }
-} 
+}

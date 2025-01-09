@@ -17,7 +17,7 @@ export class MySQLConnectionManager implements ConnectionManager {
         port: this.config.port,
         user: this.config.username,
         password: this.config.password,
-        database: this.config.database
+        database: this.config.database,
       });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -47,7 +47,7 @@ export class MySQLConnectionManager implements ConnectionManager {
         rows: rows as T[],
         count: Array.isArray(rows) ? rows.length : 0,
         query: sql,
-        parameters
+        parameters,
       };
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -93,4 +93,4 @@ export class MySQLConnectionManager implements ConnectionManager {
       throw new Error(`Rollback failed: ${errorMessage}`);
     }
   }
-} 
+}

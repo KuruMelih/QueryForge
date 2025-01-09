@@ -17,4 +17,4 @@ export type JoinCondition = {
   };
 };
 
-export type OrderDirection = 'ASC' | 'DESC'; 
+export type OrderDirection = 'ASC' | 'DESC';

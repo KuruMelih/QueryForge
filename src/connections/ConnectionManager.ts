@@ -8,4 +8,4 @@ export interface ConnectionManager {
   commit(): Promise<void>;
   rollback(): Promise<void>;
   isConnected(): boolean;
-} 
+}
