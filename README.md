@@ -5,148 +5,189 @@
 [![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue.svg)](https://www.typescriptlang.org/)
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/kurumelih/queryforge)
 
-🚀 A powerful, type-safe and flexible SQL query builder with support for MySQL, PostgreSQL, and SQLite databases.
+A powerful, type-safe SQL query builder primarily designed for TypeScript, with support for MySQL, PostgreSQL, and SQLite.
 
-## ✨ Features
+## Features
 
-### 🔍 Core Query Features
-- **SELECT** queries
-  - Complex WHERE conditions
-  - JOIN operations (INNER, LEFT, RIGHT)
-  - GROUP BY and HAVING clauses
-  - ORDER BY and LIMIT
-  - Subqueries
-  - Custom functions
+- 🔒 **Type Safety**: Full TypeScript integration with type definitions
+- 🎯 **Fluent API**: Easy to read and write query chains
+- 🔄 **Multi-Database Support**: MySQL, PostgreSQL, and SQLite
+- 🛡️ **Security**: SQL injection protection with parameterized queries
+- 🎭 **Transaction Management**: ACID compliant operations
+- 🔌 **Connection Pool**: Automatic connection management
 
-### ✏️ CRUD Operations
-- **INSERT** operations
-  - Single record insertion
-  - Bulk insert operations
-  - INSERT ... ON DUPLICATE KEY UPDATE
-  - RETURNING clause support
-
-- **UPDATE** operations
-  - Conditional updates
-  - Multiple column updates
-  - Subquery updates
-  - Bulk update operations
-
-- **DELETE** operations
-  - Conditional deletes
-  - Soft delete support
-  - Cascade delete
-  - Bulk delete operations
-
-### 🔒 Security & Performance
-- SQL injection protection
-- Parameterized queries
-- Connection pool management
-- Transaction support
-- Automatic connection recovery
-
-### 🛠️ Developer Experience
-- Full TypeScript support
-- Fluent API design
-- Detailed error messages
-- Comprehensive documentation
-- Example code snippets
-
-## 📦 Installation
+## Installation
 
 ```bash
 npm install queryforge
 ```
 
-## 🚀 Quick Start
+## JavaScript vs TypeScript Usage
 
-```typescript
-import { QueryForge, DatabaseType } from 'queryforge';
+QueryForge is primarily designed for TypeScript, but you can use it in JavaScript projects in two ways:
 
-// Configure database connection
-const config = {
-  type: DatabaseType.MYSQL,
+### 1. Using Compiled JavaScript (Recommended)
+```javascript
+const { QueryForge } = require('queryforge');
+
+const qf = new QueryForge({
+  type: 'mysql',
   host: 'localhost',
   port: 3306,
-  database: 'test_db',
-  user: 'root',
-  password: 'password'
+  username: 'root',
+  password: '',
+  database: 'test_db'
+});
+
+// Use normally
+async function example() {
+  await qf.connect();
+  const users = await qf
+    .table('users')
+    .select('*')
+    .execute();
+}
+```
+
+### 2. Using TypeScript with JavaScript
+```javascript
+// @ts-check
+const { QueryForge } = require('queryforge');
+
+/** @type {import('queryforge').DatabaseConfig} */
+const config = {
+  type: 'mysql',
+  host: 'localhost',
+  port: 3306,
+  username: 'root',
+  password: '',
+  database: 'test_db'
+};
+
+// Now you get TypeScript type checking in JS
+```
+
+## Quick Start (TypeScript)
+
+```typescript
+import { QueryForge } from 'queryforge';
+
+// Database configuration
+const config = {
+  type: 'mysql', // or 'postgres', 'sqlite'
+  host: 'localhost',
+  port: 3306,
+  username: 'root',
+  password: '',
+  database: 'test_db'
 };
 
 // Create QueryForge instance
-const qf = new QueryForge(config);
+const qf = new QueryForge(config, { logging: true });
 
-// Connect to database
-await qf.connect();
+// Basic Usage Examples
+async function examples() {
+  // Connect to database
+  await qf.connect();
 
-// SELECT example
-const users = await qf
-  .select('users.*, orders.total')
-  .from('users')
-  .leftJoin('orders', 'users.id = orders.user_id')
-  .where('users.age > ?', [18])
-  .orderBy('users.name', 'ASC')
+  try {
+    // SELECT example
+    const users = await qf
+      .table('users')
+      .select('id', 'name', 'email')
+      .where('age', '>', 18)
+      .orderBy('name', 'ASC')
+      .limit(10)
+      .execute();
+
+    // INSERT example
+    const newUser = await qf
+      .table('users')
+      .insert({
+        name: 'John Doe',
+        email: 'john@example.com',
+        age: 25
+      })
+      .execute();
+
+    // UPDATE example
+    await qf
+      .table('users')
+      .update({ status: 'active' })
+      .where('id', '=', 1)
+      .execute();
+
+    // DELETE example
+    await qf
+      .table('users')
+      .delete()
+      .where('status', '=', 'inactive')
+      .execute();
+
+    // Transaction example
+    await qf.beginTransaction();
+    try {
+      await qf
+        .table('orders')
+        .insert({
+          user_id: 1,
+          total: 100
+        })
+        .execute();
+
+      await qf
+        .table('users')
+        .update({ order_count: qf.raw('order_count + 1') })
+        .where('id', '=', 1)
+        .execute();
+
+      await qf.commit();
+    } catch (error) {
+      await qf.rollback();
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  } finally {
+    await qf.disconnect();
+  }
+}
+```
+
+## Advanced Examples
+
+### Complex SELECT Queries
+
+```typescript
+const result = await qf
+  .table('users as u')
+  .select('u.id', 'u.name', 'o.total as order_total')
+  .join('orders as o', 'u.id', '=', 'o.user_id')
+  .where('u.status', '=', 'active')
+  .andWhere('o.created_at', '>', '2024-01-01')
+  .groupBy('u.id')
+  .having('COUNT(o.id)', '>', 5)
+  .orderBy('u.name', 'ASC')
   .limit(10)
+  .offset(0)
   .execute();
+```
 
-// INSERT example
-const newUser = await qf
-  .insertInto('users')
-  .values({
-    name: 'John Doe',
-    email: 'john@example.com',
-    age: 25
-  })
-  .execute();
+### Bulk Insert Operations
 
-// Bulk INSERT example
+```typescript
 const users = [
-  { name: 'Alice', email: 'alice@example.com', age: 30 },
-  { name: 'Bob', email: 'bob@example.com', age: 25 }
+  { name: 'Alice', email: 'alice@example.com' },
+  { name: 'Bob', email: 'bob@example.com' }
 ];
 
 await qf
-  .insertInto('users')
-  .values(users)
+  .table('users')
+  .insertMany(users)
   .execute();
-
-// UPDATE example
-await qf
-  .update('users')
-  .set({ status: 'active' })
-  .where('last_login > ?', ['2024-01-01'])
-  .execute();
-
-// DELETE example
-await qf
-  .deleteFrom('users')
-  .where('status = ?', ['inactive'])
-  .execute();
-
-// Transaction example
-await qf.beginTransaction();
-try {
-  await qf
-    .insertInto('orders')
-    .values({ user_id: 1, total: 100 })
-    .execute();
-
-  await qf
-    .update('users')
-    .set({ order_count: qf.raw('order_count + 1') })
-    .where('id = ?', [1])
-    .execute();
-
-  await qf.commit();
-} catch (error) {
-  await qf.rollback();
-  throw error;
-}
-
-// Close connection
-await qf.disconnect();
 ```
 
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
@@ -154,10 +195,6 @@ await qf.disconnect();
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-Thanks to everyone who has contributed to this project! 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 

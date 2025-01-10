@@ -60,8 +60,5 @@ desktop.ini
 # Yarn Integrity file
 .yarn-integrity
 
-# Documentation
-docs/
-
 # Examples
 examples/
